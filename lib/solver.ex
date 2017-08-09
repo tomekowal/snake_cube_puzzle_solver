@@ -41,10 +41,10 @@ defmodule Solver do
   end
 
   def solve do
-    solve({0, 0, 0}, example, [], [])
+    solve({0, 0, 0}, example, [], [], [:down, :left, :right, :forward, :backward])
   end
 
-  def solve(_current_position, [], space_taken, trace_so_far) do
+  def solve(_current_position, [], space_taken, trace_so_far, _skip_directions) do
     if conditions_met?(space_taken) do
       [trace_so_far]
     else
@@ -53,14 +53,15 @@ defmodule Solver do
   end
 
   # returns list of solutions
-  def solve(current_position, [in_row | rows_left], space_taken, trace_so_far) do
+  def solve(current_position, [in_row | rows_left], space_taken, trace_so_far, skip_directions) do
     if conditions_met?(space_taken) do
       @moves
       |> Map.keys()
+      |> Kernel.--(skip_directions)
       |> Enum.map(
       fn(direction) ->
         {new_postition, new_space_taken} = put_cubes(in_row, current_position, direction, space_taken)
-        Enum.map(solve(new_postition, rows_left, new_space_taken, trace_so_far),
+        Enum.map(solve(new_postition, rows_left, new_space_taken, trace_so_far, [direction]),
           fn(solution) ->
             [direction | solution]
           end)
@@ -91,9 +92,15 @@ defmodule Solver do
   end
 
   defp are_cubes_bound?(space_taken) do
-    xs = Enum.map(space_taken, fn({x,_,_}) -> x end)
-    ys = Enum.map(space_taken, fn({_,y,_}) -> y end)
-    zs = Enum.map(space_taken, fn({_,_,z}) -> z end)
-    Enum.max(xs) - Enum.min(xs) < 3 and Enum.max(ys) - Enum.min(ys) < 3 and Enum.max(zs) - Enum.min(zs) < 3
+    0..2
+    |> Enum.map(&(axis_max_min_delta(space_taken, &1)))
+    |> Enum.all?(&(&1 < 3))
+  end
+
+  def axis_max_min_delta(space_taken, axis_num) do
+    values = Enum.map(space_taken, fn(tuple) ->
+      elem(tuple, axis_num)
+    end)
+    Enum.max(values) - Enum.min(values)
   end
 end

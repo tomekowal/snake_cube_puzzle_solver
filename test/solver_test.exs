@@ -14,7 +14,11 @@ defmodule SolverTest do
     assert Solver.put_cubes(1, {0,0,0}, :up, []) == {{0,1,0}, [{0,1,0}]}
   end
 
-  test "soleve" do
-    IO.inspect Solver.solve()
+  test "solve" do
+    solutions = Solver.solve()
+    IO.inspect length(solutions)
+    Enum.map(solutions, fn(solution) ->
+      IO.inspect solution
+    end)
   end
 end
